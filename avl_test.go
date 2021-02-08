@@ -1,8 +1,10 @@
-package avltree
+package avl_test
 
 import (
 	"math/rand"
 	"testing"
+
+	"github.coom/zyedidia/avl"
 )
 
 const (
@@ -12,7 +14,7 @@ const (
 )
 
 func TestTree(t *testing.T) {
-	tree := &AVLTree{}
+	tree := &avl.Tree{}
 	m := make(map[int]int)
 
 	const maxKey = 100
@@ -30,13 +32,7 @@ func TestTree(t *testing.T) {
 			tree.Remove(k)
 			delete(m, k)
 		case opSearch:
-			var tv int
-			node := tree.Search(k)
-			tok := node != nil
-			if tok {
-				tv = node.Value
-			}
-
+			tv, _ := tree.Search(k)
 			mv := m[k]
 			if tv != mv {
 				t.Errorf("Incorrect value for key %d, want: %d, got: %d", k, mv, tv)

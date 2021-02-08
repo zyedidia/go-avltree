@@ -1,50 +1,42 @@
-package avltree
+package avl
 
-import (
-	"fmt"
-)
-
-// AVLTree structure. Public methods are Add, Remove, Update, Search, DisplayTreeInOrder.
-type AVLTree struct {
-	root *AVLNode
+type Tree struct {
+	root *node
 }
 
-func (t *AVLTree) Add(key int, value int) {
+func (t *Tree) Add(key int, value int) {
 	t.root = t.root.add(key, value)
 }
 
-func (t *AVLTree) Remove(key int) {
+func (t *Tree) Remove(key int) {
 	t.root = t.root.remove(key)
 }
 
-func (t *AVLTree) Update(oldKey int, newKey int, newValue int) {
-	t.root = t.root.remove(oldKey)
-	t.root = t.root.add(newKey, newValue)
+func (t *Tree) Search(key int) (int, bool) {
+	node := t.root.search(key)
+	if node == nil {
+		return 0, false
+	}
+	return node.value, true
 }
 
-func (t *AVLTree) Search(key int) (node *AVLNode) {
-	return t.root.search(key)
+func (t *Tree) Size() int {
+	return t.root.getSize()
 }
 
-func (t *AVLTree) DisplayInOrder() {
-	t.root.displayNodesInOrder()
-}
-
-// AVLNode structure
-type AVLNode struct {
+type node struct {
 	key   int
-	Value int
+	value int
 
 	// height counts nodes (not edges)
 	height int
-	left   *AVLNode
-	right  *AVLNode
+	left   *node
+	right  *node
 }
 
-// Adds a new node
-func (n *AVLNode) add(key int, value int) *AVLNode {
+func (n *node) add(key int, value int) *node {
 	if n == nil {
-		return &AVLNode{key, value, 1, nil, nil}
+		return &node{key, value, 1, nil, nil}
 	}
 
 	if key < n.key {
@@ -53,13 +45,12 @@ func (n *AVLNode) add(key int, value int) *AVLNode {
 		n.right = n.right.add(key, value)
 	} else {
 		// if same key exists update value
-		n.Value = value
+		n.value = value
 	}
 	return n.rebalanceTree()
 }
 
-// Removes a node
-func (n *AVLNode) remove(key int) *AVLNode {
+func (n *node) remove(key int) *node {
 	if n == nil {
 		return nil
 	}
@@ -73,7 +64,7 @@ func (n *AVLNode) remove(key int) *AVLNode {
 			// replace values with smallest node of the right sub-tree
 			rightMinNode := n.right.findSmallest()
 			n.key = rightMinNode.key
-			n.Value = rightMinNode.Value
+			n.value = rightMinNode.value
 			// delete smallest node that we replaced
 			n.right = n.right.remove(rightMinNode.key)
 		} else if n.left != nil {
@@ -92,8 +83,7 @@ func (n *AVLNode) remove(key int) *AVLNode {
 	return n.rebalanceTree()
 }
 
-// Searches for a node
-func (n *AVLNode) search(key int) *AVLNode {
+func (n *node) search(key int) *node {
 	if n == nil {
 		return nil
 	}
@@ -106,30 +96,26 @@ func (n *AVLNode) search(key int) *AVLNode {
 	}
 }
 
-// Displays nodes left-depth first (used for debugging)
-func (n *AVLNode) displayNodesInOrder() {
-	if n.left != nil {
-		n.left.displayNodesInOrder()
-	}
-	fmt.Print(n.key, " ")
-	if n.right != nil {
-		n.right.displayNodesInOrder()
-	}
-}
-
-func (n *AVLNode) getHeight() int {
+func (n *node) getHeight() int {
 	if n == nil {
 		return 0
 	}
 	return n.height
 }
 
-func (n *AVLNode) recalculateHeight() {
+func (n *node) getSize() int {
+	if n == nil {
+		return 0
+	}
+	return n.left.getSize() + n.right.getSize() + 1
+}
+
+func (n *node) recalculateHeight() {
 	n.height = 1 + max(n.left.getHeight(), n.right.getHeight())
 }
 
 // Checks if node is balanced and rebalance
-func (n *AVLNode) rebalanceTree() *AVLNode {
+func (n *node) rebalanceTree() *node {
 	if n == nil {
 		return n
 	}
@@ -154,7 +140,7 @@ func (n *AVLNode) rebalanceTree() *AVLNode {
 }
 
 // Rotate nodes left to balance node
-func (n *AVLNode) rotateLeft() *AVLNode {
+func (n *node) rotateLeft() *node {
 	newRoot := n.right
 	n.right = newRoot.left
 	newRoot.left = n
@@ -165,7 +151,7 @@ func (n *AVLNode) rotateLeft() *AVLNode {
 }
 
 // Rotate nodes right to balance node
-func (n *AVLNode) rotateRight() *AVLNode {
+func (n *node) rotateRight() *node {
 	newRoot := n.left
 	n.left = newRoot.right
 	newRoot.right = n
@@ -176,7 +162,7 @@ func (n *AVLNode) rotateRight() *AVLNode {
 }
 
 // Finds the smallest child (based on the key) for the current node
-func (n *AVLNode) findSmallest() *AVLNode {
+func (n *node) findSmallest() *node {
 	if n.left != nil {
 		return n.left.findSmallest()
 	} else {
@@ -184,7 +170,6 @@ func (n *AVLNode) findSmallest() *AVLNode {
 	}
 }
 
-// Returns max number - TODO: std lib seemed to only have a method for floats!
 func max(a int, b int) int {
 	if a > b {
 		return a
